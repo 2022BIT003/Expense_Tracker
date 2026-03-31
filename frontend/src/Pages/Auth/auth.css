@@ -1,0 +1,207 @@
+/* auth.css */
+.login-page {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #0d1629;
+    /* Darker navy background */
+    overflow: hidden;
+    font-family: 'Inter', 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Emulating the large subtle glow from the left side in the image */
+.login-page::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: -20%;
+    width: 80%;
+    height: 140%;
+    background: radial-gradient(circle at 30% 50%, rgba(18, 56, 117, 0.45) 0%, rgba(13, 22, 41, 0) 65%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.login-page::after {
+    content: '';
+    position: absolute;
+    bottom: -10%;
+    right: -10%;
+    width: 50%;
+    height: 50%;
+    background: radial-gradient(circle at center, rgba(14, 165, 233, 0.05) 0%, rgba(13, 22, 41, 0) 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.glass-card {
+    position: relative;
+    z-index: 10;
+    background: #121c2f;
+    /* Solid dark blue strictly matching the card */
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    /* Extremely subtle border */
+    border-radius: 20px;
+    padding: 3rem 2.5rem;
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-title {
+    color: #ffffff;
+    font-size: 1.7rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    margin-top: 0;
+    letter-spacing: -0.01em;
+}
+
+.auth-subtitle {
+    color: #8b98ae;
+    /* Light grayish blue */
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+}
+
+.auth-form-group {
+    margin-bottom: 1.25rem;
+}
+
+.auth-label {
+    display: block;
+    color: #d1d5db;
+    /* Light gray label */
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.auth-input {
+    width: 100%;
+    background: #090e18;
+    /* Near-black dark blue for inputs */
+    border: 1px solid #1e293b;
+    color: #f1f5f9;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.auth-input::placeholder {
+    color: #4b5563;
+    /* Subtle placeholder color */
+}
+
+.auth-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #4ea7fc 0%, #3a8ff7 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.85rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 1rem;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.auth-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+}
+
+.auth-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.auth-links {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.auth-link {
+    color: #4ca4fc;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.auth-link:hover {
+    color: #7abffe;
+    text-decoration: underline;
+}
+
+.auth-footer-text {
+    color: #8b98ae;
+    margin: 0;
+}
+
+.auth-icon-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.auth-icon {
+    background: rgba(43, 114, 235, 0.15);
+    /* Soft transparent blue */
+    color: #4da5fd;
+    width: 68px;
+    height: 68px;
+    border-radius: 18px;
+    /* Prominent rounded square corner */
+    box-shadow: 0 0 25px rgba(43, 114, 235, 0.15);
+    /* Soft glow matching the background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-icon>svg {
+    font-size: 36px !important;
+}
+
+.auth-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle-icon {
+    position: absolute;
+    right: 15px;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.password-toggle-icon:hover {
+    color: #94a3b8;
+}

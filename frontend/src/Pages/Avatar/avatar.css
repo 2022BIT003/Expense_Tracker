@@ -1,0 +1,102 @@
+/* avatar.css */
+.avatar-container {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 2rem 0;
+}
+
+.avatarBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.upload-zone {
+    width: 280px;
+    height: 280px;
+    border: 2px dashed rgba(56, 189, 248, 0.3);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.02);
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-zone:hover {
+    border-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.05);
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+}
+
+.upload-zone.has-preview {
+    border-style: solid;
+    border-color: #38bdf8;
+}
+
+.upload-placeholder {
+    text-align: center;
+    padding: 20px;
+}
+
+.upload-placeholder p {
+    margin-top: 15px;
+    font-size: 0.95rem;
+    color: #e6f1ff;
+    opacity: 0.8;
+}
+
+.upload-hint {
+    font-size: 0.75rem !important;
+    color: #8b98ae;
+}
+
+.upload-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.change-photo-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(13, 22, 41, 0.8);
+    height: 35%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.upload-zone:hover .change-photo-overlay {
+    opacity: 1;
+}
+
+.change-photo-overlay span {
+    font-size: 0.75rem;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.loading-spinner {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
