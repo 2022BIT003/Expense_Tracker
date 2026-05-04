@@ -1,12 +1,11 @@
-import React from 'react'
-import logo from "../assets/loader.gif"
-import { Container } from 'react-bootstrap'
+import React from 'react';
+
 const Spinner = () => {
     return (
-        <Container className="mt-5" style={{ position: 'relative', zIndex: "2 !important", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img className="mt-5" src={logo} alt="loading" width="250px" height="250px" />
-        </Container>
-    )
-}
+        <div className="flex items-center justify-center py-10" role="status" aria-label="Loading">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
+        </div>
+    );
+};
 
-export default Spinner
+export default Spinner;

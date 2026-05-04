@@ -1,5 +1,5 @@
-import Transaction from "../models/TransactionModel.js";
-import User from "../models/UserSchema.js";
+import Transaction from "../models/transaction.model.js";
+import User from "../models/user.model.js";
 import moment from "moment";
 
 export const addTransactionController = async (req, res) => {
@@ -10,9 +10,9 @@ export const addTransactionController = async (req, res) => {
             description,
             date,
             category,
-            userId,
             transactionType,
         } = req.body;
+        const userId = req.user._id;
 
         if (
             !title ||
@@ -64,7 +64,8 @@ export const addTransactionController = async (req, res) => {
 
 export const getAllTransactionController = async (req, res) => {
     try {
-        const { userId, type, frequency, startDate, endDate } = req.body;
+        const { type, frequency, startDate, endDate } = req.body;
+        const userId = req.user._id;
 
         const user = await User.findById(userId);
 
@@ -125,7 +126,7 @@ export const getAllTransactionController = async (req, res) => {
 export const deleteTransactionController = async (req, res) => {
     try {
         const transactionId = req.params.id;
-        const userId = req.body.userId;
+        const userId = req.user._id;
 
         const user = await User.findById(userId);
 
@@ -135,9 +136,7 @@ export const deleteTransactionController = async (req, res) => {
                 message: "User not found",
             });
         }
-        const transactionElement = await Transaction.findByIdAndDelete(
-            transactionId
-        );
+        const transactionElement = await Transaction.findById(transactionId);
 
         if (!transactionElement) {
             return res.status(400).json({
@@ -145,6 +144,15 @@ export const deleteTransactionController = async (req, res) => {
                 message: "transaction not found",
             });
         }
+
+        if (transactionElement.user.toString() !== userId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Not authorized to delete this transaction",
+            });
+        }
+
+        await Transaction.findByIdAndDelete(transactionId);
 
         const transactionArr = user.transactions.filter(
             (transaction) => transaction._id.toString() !== transactionId
@@ -168,6 +176,7 @@ export const deleteTransactionController = async (req, res) => {
 export const updateTransactionController = async (req, res) => {
     try {
         const transactionId = req.params.id;
+        const userId = req.user._id;
         const { title, amount, description, date, category, transactionType } = req.body;
 
         const transactionElement = await Transaction.findById(transactionId);
@@ -176,6 +185,13 @@ export const updateTransactionController = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "transaction not found",
+            });
+        }
+
+        if (transactionElement.user.toString() !== userId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Not authorized to update this transaction",
             });
         }
 

@@ -1,21 +1,56 @@
 import React from 'react';
-import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from './Pages/Auth/Login';
-import Register from './Pages/Auth/Register';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp } from "@clerk/clerk-react";
 import Home from './Pages/Home/Home';
-import SetAvatar from './Pages/Avatar/setAvatar';
+import SetAvatar from './Pages/Avatar/SetAvatar';
 
 const App = () => {
   return (
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/setAvatar" element={<SetAvatar />} />
+          <Route
+            path="/"
+            element={
+              <>
+                <SignedIn>
+                  <Home />
+                </SignedIn>
+                <SignedOut>
+                  <RedirectToSignIn />
+                </SignedOut>
+              </>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <div className="flex items-center justify-center min-h-screen bg-slate-50">
+                <SignIn routing="path" path="/login" signUpUrl="/register" />
+              </div>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <div className="flex items-center justify-center min-h-screen bg-slate-50">
+                <SignUp routing="path" path="/register" signInUrl="/login" />
+              </div>
+            }
+          />
+          <Route
+            path="/setAvatar"
+            element={
+              <>
+                <SignedIn>
+                  <SetAvatar />
+                </SignedIn>
+                <SignedOut>
+                  <RedirectToSignIn />
+                </SignedOut>
+              </>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </div>

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import './CircularProgressBar.css';
 
 const CircularProgressBar = ({ percentage, color }) => {
     const radius = 45;
@@ -12,34 +11,55 @@ const CircularProgressBar = ({ percentage, color }) => {
         setIsAnimating(true);
     }, []);
 
-    const circleStyle = {
-        '--circumference': circumference,
-        '--progress': progress,
-        '--color': color,
-    };
-
     return (
-        <div className="circular-progressbar">
-            <svg viewBox="0 0 100 100">
+        <div className="inline-block relative w-24 h-24">
+            <svg viewBox="0 0 100 100" className="w-full h-full">
                 <circle
-                    className="circle bg"
                     r={radius}
                     cx="50"
                     cy="50"
                     strokeDasharray={circumference}
-                    style={circleStyle}
+                    stroke="rgba(255, 255, 255, 0.05)"
+                    fill="transparent"
+                    strokeWidth="7"
+                    strokeLinecap="round"
+                    style={{
+                        transformOrigin: '50% 50%',
+                        transform: 'rotate(-90deg)',
+                    }}
                 />
                 <circle
-                    className={`circle ${isAnimating ? 'animating' : ''}`}
                     r={radius}
                     cx="50"
                     cy="50"
                     strokeDasharray={circumference}
                     strokeDashoffset={progress}
-                    style={circleStyle}
+                    stroke={color}
+                    fill="transparent"
+                    strokeWidth="7"
+                    strokeLinecap="round"
+                    style={{
+                        transformOrigin: '50% 50%',
+                        transform: 'rotate(-90deg)',
+                        transition: 'stroke-dashoffset 2s linear',
+                        animation: isAnimating ? `progressAnimation 3s linear forwards` : 'none',
+                    }}
                 />
             </svg>
-            <div className="percentage">{percentage}%</div>
+            <div className="absolute inset-0 flex items-center justify-center text-xl font-semibold text-slate-100">
+                {percentage}%
+            </div>
+
+            <style>{`
+                @keyframes progressAnimation {
+                    from {
+                        stroke-dashoffset: var(--circumference);
+                    }
+                    to {
+                        stroke-dashoffset: var(--progress);
+                    }
+                }
+            `}</style>
         </div>
     );
 };

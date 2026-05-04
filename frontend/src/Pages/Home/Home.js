@@ -1,440 +1,165 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import Header from "../../components/Header";
-import { useNavigate } from "react-router-dom";
-import { Button, Modal, Form, Container } from "react-bootstrap";
-import "./home.css";
-import { addTransaction, getTransactions } from "../../utils/ApiRequest";
-import axios from "../../utils/axiosInstance";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import Sidebar from "../../components/Sidebar";
+import Footer from "../../components/Footer";
 import Spinner from "../../components/Spinner";
-import TableData from "./TableData";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
-import BarChartIcon from "@mui/icons-material/BarChart";
-import Analytics from "./Analytics";
-import * as XLSX from 'xlsx';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import moment from "moment";
+import ProfileSection from "./components/ProfileSection";
+import DashboardSection from "./components/DashboardSection";
+import TransactionsSection from "./components/TransactionsSection";
+import { useHomeLogic } from "../../hooks/useHomeLogic";
+import { handleExport } from "./helpers/exportUtils";
+import { calculateStats, getFilteredTransactions } from "./helpers/statsUtils";
 
 const Home = () => {
-    const navigate = useNavigate();
+    const {
+        currentUser,
+        loading,
+        transactions,
+        frequency,
+        setFrequency,
+        activeSection,
+        handleSectionChange,
+        handleLogout,
+        values,
+        handleChange,
+        handleSubmit,
+        showEditProfileModal,
+        setShowEditProfileModal,
+        profileName,
+        setProfileName,
+        profileAvatarPreview,
+        handleProfileAvatarChange,
+        handleProfileSave,
+        profileSaving,
+        transactionFilter,
+        setTransactionFilter,
+        filterStartDate,
+        setFilterStartDate,
+        filterEndDate,
+        setFilterEndDate,
+        filterCategory,
+        setFilterCategory,
+        filterAmountMin,
+        setFilterAmountMin,
+        filterAmountMax,
+        setFilterAmountMax,
+        showTransactionFilters,
+        setShowTransactionFilters,
+        toastOptions,
+        triggerRefresh
+    } = useHomeLogic();
 
-    const toastOptions = {
-        position: "bottom-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-        theme: "dark",
-    };
-    const [cUser, setcUser] = useState(null);
-    const [show, setShow] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [transactions, setTransactions] = useState([]);
-    const [refresh, setRefresh] = useState(false);
-    const [frequency, setFrequency] = useState("7");
-    const [type, setType] = useState("all");
-    const [startDate, setStartDate] = useState(null);
-    const [endDate, setEndDate] = useState(null);
-    const [view, setView] = useState("table");
+    // Memoize calculated values for performance
+    const stats = useMemo(() => calculateStats(transactions), [transactions]);
+    
+    const filteredTransactions = useMemo(() => 
+        getFilteredTransactions(transactions, {
+            transactionFilter,
+            filterCategory,
+            filterStartDate,
+            filterEndDate,
+            filterAmountMin,
+            filterAmountMax
+        }), 
+        [transactions, transactionFilter, filterCategory, filterStartDate, filterEndDate, filterAmountMin, filterAmountMax]
+    );
 
-    const handleExport = () => {
-        if (transactions.length === 0) {
-            toast.error("No transactions to export!", toastOptions);
-            return;
-        }
-
-        const dataToExport = transactions.map((t) => ({
-            Date: moment(t.date).format("YYYY-MM-DD"),
-            Title: t.title,
-            Amount: t.amount,
-            Type: t.transactionType.charAt(0).toUpperCase() + t.transactionType.slice(1),
-            Category: t.category,
-            Description: t.description,
-        }));
-
-        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
-
-        XLSX.utils.sheet_add_aoa(worksheet, [["Date", "Title", "Amount (₹)", "Type", "Category", "Description"]], { origin: "A1" });
-
-        XLSX.writeFile(workbook, `Expense_Tracker_Report_${moment().format("YYYY-MM-DD")}.xlsx`);
-        toast.success("Report downloaded successfully!", toastOptions);
-    };
-
-    const handleStartChange = (date) => {
-        setStartDate(date);
-    };
-
-    const handleEndChange = (date) => {
-        setEndDate(date);
-    };
-
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
-
-    useEffect(() => {
-        const avatarFunc = async () => {
-            if (localStorage.getItem("user")) {
-                const user = JSON.parse(localStorage.getItem("user"));
-
-                if (!user.isAvatarImageSet || user.avatarImage === "") {
-                    navigate("/setAvatar");
-                }
-                setcUser(user);
-                setRefresh(true);
-            } else {
-                navigate("/login");
-            }
-        };
-        avatarFunc();
-    }, [navigate]);
-
-    const [values, setValues] = useState({
-        title: "",
-        amount: "",
-        description: "",
-        category: "",
-        date: "",
-        transactionType: "",
-    });
-
-    const handleChange = (e) => {
-        setValues({ ...values, [e.target.name]: e.target.value });
-    };
-
-    const handleChangeFrequency = (e) => {
-        setFrequency(e.target.value);
-    };
-
-    const handleSetType = (e) => {
-        setType(e.target.value);
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        const { title, amount, description, category, date, transactionType } =
-            values;
-
-        if (
-            !title ||
-            !amount ||
-            !description ||
-            !category ||
-            !date ||
-            !transactionType
-        ) {
-            toast.error("Please enter all the fields", toastOptions);
-            return;
-        }
-        setLoading(true);
-
-        try {
-            const { data } = await axios.post(addTransaction, {
-                title: title,
-                amount: amount,
-                description: description,
-                category: category,
-                date: date,
-                transactionType: transactionType,
-                userId: cUser._id,
-            });
-
-            if (data.success === true) {
-                toast.success(data.message, toastOptions);
-                handleClose();
-                setRefresh(!refresh);
-            } else {
-                toast.error(data.message, toastOptions);
-            }
-        } catch (err) {
-            console.error(err);
-            toast.error(err.response?.data?.message || "Error adding transaction", toastOptions);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleReset = () => {
-        setType("all");
-        setStartDate(null);
-        setEndDate(null);
-        setFrequency("all");
-    };
-
-
-
-
-
-    useEffect(() => {
-
-        const fetchAllTransactions = async () => {
-            try {
-                setLoading(true);
-                const { data } = await axios.post(getTransactions, {
-                    userId: cUser._id,
-                    frequency: frequency,
-                    startDate: startDate,
-                    endDate: endDate,
-                    type: type,
-                });
-                console.log(data);
-
-                setTransactions(data.transactions);
-
-                setLoading(false);
-            } catch (err) {
-                // toast.error("Error please Try again...", toastOptions);
-                setLoading(false);
-            }
-        };
-
-        if (cUser) {
-            fetchAllTransactions();
-        }
-    }, [refresh, frequency, endDate, type, startDate, cUser]);
-
-    const handleTableClick = (e) => {
-        setView("table");
-    };
-
-    const handleChartClick = (e) => {
-        setView("chart");
-    };
+    const periodLabel = frequency === "1" ? "Daily" : frequency === "7" ? "Weekly" : frequency === "month" ? "Monthly" : frequency === "year" ? "Yearly" : "All Time";
+    
+    const pageHeading = activeSection === "dashboard"
+        ? "Dashboard"
+        : activeSection === "profile"
+            ? "Profile"
+            : "Transactions";
+            
+    const pageSubtitle = activeSection === "profile"
+        ? "Manage your account details and settings."
+        : "Add, export and filter income and expense history from one combined transaction page.";
 
     return (
-        <div className="home-page">
-            <Header />
+        <div className="min-h-screen bg-slate-50">
+            <Header currentUser={currentUser} />
 
-            {loading ? (
-                <>
-                    <Spinner />
-                </>
-            ) : (
-                <>
-                    <Container
-                        style={{ position: "relative", zIndex: "2 !important" }}
-                        className="mt-3"
-                    >
-                        <div className="filterRow glass-container">
-                            <div className="text-white">
-                                <Form.Group className="mb-3" controlId="formSelectFrequency">
-                                    <Form.Label>Select Frequency</Form.Label>
-                                    <Form.Select
-                                        name="frequency"
-                                        value={frequency}
-                                        onChange={handleChangeFrequency}
-                                    >
-                                        <option value="all">All Transactions</option>
-                                        <option value="7">Last 7 Days</option>
-                                        <option value="month">This Month</option>
-                                        <option value="year">This Year</option>
-                                        <option value="custom">Custom Range</option>
-                                    </Form.Select>
-                                </Form.Group>
-                            </div>
+            <div className="flex">
+                <Sidebar
+                    activeSection={activeSection}
+                    onSectionChange={handleSectionChange}
+                    onLogout={handleLogout}
+                />
 
-                            <div className="text-white type">
-                                <Form.Group className="mb-3" controlId="formSelectFrequency">
-                                    <Form.Label>Type</Form.Label>
-                                    <Form.Select
-                                        name="type"
-                                        value={type}
-                                        onChange={handleSetType}
-                                    >
-                                        <option value="all">All</option>
-                                        <option value="expense">Expense</option>
-                                        <option value="credit">Earned</option>
-                                    </Form.Select>
-                                </Form.Group>
-                            </div>
-
-                            <div className="text-white iconBtnBox">
-                                <FormatListBulletedIcon
-                                    sx={{ cursor: "pointer" }}
-                                    onClick={handleTableClick}
-                                    className={`${view === "table" ? "iconActive" : "iconDeactive"
-                                        }`}
-                                />
-                                <BarChartIcon
-                                    sx={{ cursor: "pointer" }}
-                                    onClick={handleChartClick}
-                                    className={`${view === "chart" ? "iconActive" : "iconDeactive"
-                                        }`}
-                                />
-                            </div>
-
-                            <div className="d-flex align-items-center gap-2">
-                                <Button variant="outline-primary" onClick={handleExport} className="export-btn shadow-sm btn-sm d-flex align-items-center">
-                                    <FileDownloadIcon sx={{ fontSize: 18 }} className="me-1" /> Export
-                                </Button>
-                                <Button onClick={handleShow} className="addNew">
-                                    Add New
-                                </Button>
-                                <Button onClick={handleShow} className="mobileBtn">
-                                    +
-                                </Button>
-                                <Modal show={show} onHide={handleClose} centered>
-                                    <Modal.Header closeButton>
-                                        <Modal.Title>Add Transaction Details</Modal.Title>
-                                    </Modal.Header>
-                                    <Modal.Body>
-                                        <Form>
-                                            <Form.Group className="mb-3" controlId="formName">
-                                                <Form.Label>Title</Form.Label>
-                                                <Form.Control
-                                                    name="title"
-                                                    type="text"
-                                                    placeholder="Enter Transaction Name"
-                                                    value={values.title}
-                                                    onChange={handleChange}
-                                                />
-                                            </Form.Group>
-
-                                            <Form.Group className="mb-3" controlId="formAmount">
-                                                <Form.Label>Amount</Form.Label>
-                                                <Form.Control
-                                                    name="amount"
-                                                    type="number"
-                                                    placeholder="Enter your Amount"
-                                                    value={values.amount}
-                                                    onChange={handleChange}
-                                                />
-                                            </Form.Group>
-
-                                            <Form.Group className="mb-3" controlId="formSelect">
-                                                <Form.Label>Category</Form.Label>
-                                                <Form.Select
-                                                    name="category"
-                                                    value={values.category}
-                                                    onChange={handleChange}
-                                                >
-                                                    <option value="">Choose...</option>
-                                                    <option value="Groceries">Groceries</option>
-                                                    <option value="Rent">Rent</option>
-                                                    <option value="Salary">Salary</option>
-                                                    <option value="Tip">Tip</option>
-                                                    <option value="Food">Food</option>
-                                                    <option value="Medical">Medical</option>
-                                                    <option value="Utilities">Utilities</option>
-                                                    <option value="Entertainment">Entertainment</option>
-                                                    <option value="Transportation">Transportation</option>
-                                                    <option value="Other">Other</option>
-                                                </Form.Select>
-                                            </Form.Group>
-
-                                            <Form.Group className="mb-3" controlId="formDescription">
-                                                <Form.Label>Description</Form.Label>
-                                                <Form.Control
-                                                    type="text"
-                                                    name="description"
-                                                    placeholder="Enter Description"
-                                                    value={values.description}
-                                                    onChange={handleChange}
-                                                />
-                                            </Form.Group>
-
-                                            <Form.Group className="mb-3" controlId="formSelect1">
-                                                <Form.Label>Transaction Type</Form.Label>
-                                                <Form.Select
-                                                    name="transactionType"
-                                                    value={values.transactionType}
-                                                    onChange={handleChange}
-                                                >
-                                                    <option value="">Choose...</option>
-                                                    <option value="credit">Credit</option>
-                                                    <option value="expense">Expense</option>
-                                                </Form.Select>
-                                            </Form.Group>
-
-                                            <Form.Group className="mb-3" controlId="formDate">
-                                                <Form.Label>Date</Form.Label>
-                                                <Form.Control
-                                                    type="date"
-                                                    name="date"
-                                                    value={values.date}
-                                                    onChange={handleChange}
-                                                />
-                                            </Form.Group>
-
-                                            {/* Add more form inputs as needed */}
-                                        </Form>
-                                    </Modal.Body>
-                                    <Modal.Footer>
-                                        <Button variant="secondary" onClick={handleClose}>
-                                            Close
-                                        </Button>
-                                        <Button variant="primary" onClick={handleSubmit}>
-                                            Submit
-                                        </Button>
-                                    </Modal.Footer>
-                                </Modal>
-                            </div>
+                <main className="flex-1 p-6">
+                    {loading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <Spinner />
                         </div>
-                        <br style={{ color: "white" }}></br>
+                    ) : (
+                        <>
+                            {/* Page Header */}
+                            <div className="mb-8">
+                                <h1 className="text-3xl font-bold text-slate-900 mb-2">
+                                    {pageHeading}
+                                </h1>
+                                <p className="text-slate-600">
+                                    {pageSubtitle}
+                                </p>
+                            </div>
 
-                        {frequency === "custom" ? (
-                            <>
-                                <div className="date">
-                                    <div className="form-group">
-                                        <label htmlFor="startDate" className="text-white">
-                                            Start Date:
-                                        </label>
-                                        <div>
-                                            <DatePicker
-                                                selected={startDate}
-                                                onChange={handleStartChange}
-                                                selectsStart
-                                                startDate={startDate}
-                                                endDate={endDate}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="endDate" className="text-white">
-                                            End Date:
-                                        </label>
-                                        <div>
-                                            <DatePicker
-                                                selected={endDate}
-                                                onChange={handleEndChange}
-                                                selectsEnd
-                                                startDate={startDate}
-                                                endDate={endDate}
-                                                minDate={startDate}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <></>
-                        )}
+                            {activeSection === "profile" ? (
+                                <ProfileSection
+                                    currentUser={currentUser}
+                                    showEditProfileModal={showEditProfileModal}
+                                    setShowEditProfileModal={setShowEditProfileModal}
+                                    profileName={profileName}
+                                    setProfileName={setProfileName}
+                                    profileAvatarPreview={profileAvatarPreview}
+                                    onAvatarFileChange={handleProfileAvatarChange}
+                                    handleProfileSave={handleProfileSave}
+                                    profileSaving={profileSaving}
+                                />
+                            ) : (
+                                <>
+                                    {activeSection === "dashboard" ? (
+                                        <DashboardSection
+                                            {...stats}
+                                            periodLabel={periodLabel}
+                                            frequency={frequency}
+                                            setFrequency={setFrequency}
+                                            transactions={transactions}
+                                            onRefresh={triggerRefresh}
+                                        />
+                                    ) : (
+                                        <TransactionsSection
+                                            values={values}
+                                            handleChange={handleChange}
+                                            handleSubmit={handleSubmit}
+                                            transactionFilter={transactionFilter}
+                                            setTransactionFilter={setTransactionFilter}
+                                            handleExport={(f) => handleExport(transactions, f, toastOptions)}
+                                            showTransactionFilters={showTransactionFilters}
+                                            setShowTransactionFilters={setShowTransactionFilters}
+                                            filteredTransactions={filteredTransactions}
+                                            filterStartDate={filterStartDate}
+                                            setFilterStartDate={setFilterStartDate}
+                                            filterEndDate={filterEndDate}
+                                            setFilterEndDate={setFilterEndDate}
+                                            filterCategory={filterCategory}
+                                            setFilterCategory={setFilterCategory}
+                                            filterAmountMin={filterAmountMin}
+                                            setFilterAmountMin={setFilterAmountMin}
+                                            filterAmountMax={filterAmountMax}
+                                            setFilterAmountMax={setFilterAmountMax}
+                                            onRefresh={triggerRefresh}
+                                        />
+                                    )}
 
-                        <div className="containerBtn">
-                            <Button variant="primary" onClick={handleReset}>
-                                Reset Filter
-                            </Button>
-                        </div>
-                        {view === "table" ? (
-                            <>
-                                <TableData data={transactions} user={cUser} />
-                            </>
-                        ) : (
-                            <>
-                                <Analytics transactions={transactions} user={cUser} />
-                            </>
-                        )}
-                        <ToastContainer />
-                    </Container>
-                </>
-            )}
+                                </>
+                            )}
+                        </>
+                    )}
+                </main>
+            </div>
+
+            <Footer />
         </div>
     );
 };

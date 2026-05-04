@@ -12,9 +12,14 @@ const userSchema = new mongoose.Schema({
         unique: true,
         validate: validator.isEmail,
     },
+    clerkId: {
+        type: String,
+        unique: true,
+        required: true,
+    },
     password: {
         type: String,
-        required: [true, "Password is required"],
+        required: false,
         minlength: [6, "Password Must Be Atleast 6 characters"],
     },
     isAvatarImageSet: {

@@ -1,13 +1,14 @@
+import dotenv from "dotenv";
+dotenv.config({ path: "./.env" });
+
 import express from "express";
 import cors from "cors";
-import { connectDB } from "./DB/Database.js";
-import dotenv from "dotenv";
+import { connectDB } from "./db/database.js";
 import helmet from "helmet";
 import morgan from "morgan";
-import transactionRoutes from "./Routers/Transactions.js";
-import userRoutes from "./Routers/userRouter.js";
+import transactionRoutes from "./Routers/transaction.routes.js";
+import userRoutes from "./Routers/user.routes.js";
 
-dotenv.config({ path: "./.env" });
 const app = express();
 
 const port = process.env.PORT || 5000;
@@ -19,8 +20,8 @@ const allowedOrigins = [
 ];
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: false, limit: "5mb" }));
 app.use(
     cors({
         origin: allowedOrigins,
