@@ -8,6 +8,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import transactionRoutes from "./Routers/transaction.routes.js";
 import userRoutes from "./Routers/user.routes.js";
+import aiRoutes from "./Routers/ai.routes.js";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use(morgan("dev"));
 
 // Routes
 app.use("/api/v1", transactionRoutes);
+app.use("/api/v1/ai", aiRoutes);
 app.use("/api/auth", userRoutes);
 
 app.get("/", (req, res) => {

@@ -6,3 +6,6 @@ export const addTransaction = "/api/v1/addTransaction";
 export const getTransactions = "/api/v1/getTransaction";
 export const editTransactions = "/api/v1/updateTransaction";
 export const deleteTransactions = "/api/v1/deleteTransaction";
+
+export const aiQueryAPI = "/api/v1/ai/query";
+export const aiScanReceiptAPI = "/api/v1/ai/scan-receipt";

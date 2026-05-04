@@ -23,6 +23,7 @@ const Home = () => {
         values,
         handleChange,
         handleSubmit,
+        handleReceiptData,
         showEditProfileModal,
         setShowEditProfileModal,
         profileName,
@@ -149,6 +150,8 @@ const Home = () => {
                                             filterAmountMax={filterAmountMax}
                                             setFilterAmountMax={setFilterAmountMax}
                                             onRefresh={triggerRefresh}
+                                            handleReceiptData={handleReceiptData}
+                                            toastOptions={toastOptions}
                                         />
                                     )}
 

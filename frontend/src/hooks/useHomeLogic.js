@@ -231,6 +231,17 @@ export const useHomeLogic = () => {
 
     const triggerRefresh = () => setRefresh(prev => !prev);
 
+    const handleReceiptData = (data) => {
+        setValues({
+            title: data.title || "",
+            amount: data.amount || "",
+            description: data.description || "",
+            category: data.category || "",
+            date: data.date || "",
+            transactionType: data.transactionType || "expense",
+        });
+    };
+
     return {
         currentUser,
         loading,
@@ -244,6 +255,7 @@ export const useHomeLogic = () => {
         values,
         handleChange,
         handleSubmit,
+        handleReceiptData,
         // Profile
         showEditProfileModal,
         setShowEditProfileModal,
